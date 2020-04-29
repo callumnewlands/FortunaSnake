@@ -4,6 +4,8 @@
         "stdint.h": "c",
         "ff.h": "c",
         "stdlib.h": "c",
-        "math.h": "c"
+        "math.h": "c",
+        "stdbool.h": "c",
+        "interrupt.h": "c"
     }
 }
