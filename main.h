@@ -22,4 +22,4 @@ typedef struct {
     snake_segment *tail;
 } snake;
 
-typedef enum {Up, Down, Left, Right} direction;
+typedef enum {Up, Down, Left, Right, None} direction;

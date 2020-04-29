@@ -1,10 +1,10 @@
 #include "main.h"
 
-#define PADDING 20
-#define BOARD_WIDTH 22
+#define PADDING 15
+#define BOARD_WIDTH 21
 #define BOARD_HEIGHT 15
 #define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  2 * PADDING) / BOARD_WIDTH) )
-#define BASE_SPEED 300 /* Starting time between movements in ms */
+#define BASE_SPEED 200 /* Starting time between movements in ms */
 #define BACK_COLOUR DARK_GREY
 
 snake s;
@@ -30,7 +30,7 @@ void main(void)
 	sei();
 
 	clear_screen();
-	display_string_xy("Press Center to Start", 60, 30);
+	display_string_xy("Press Center to Start", 80, 100);
 	while(!centre_pressed());
 
 	clear_screen();
@@ -42,7 +42,7 @@ void main(void)
    		PINB |= _BV(PINB7);   /* toggle LED */
 		step();
 		redraw();
-		_delay_ms(speed * BASE_SPEED);
+		_delay_ms(BASE_SPEED / speed);
 	}
 }
 
@@ -55,6 +55,9 @@ void move_segment(snake_segment *ss) {
 }
 
 void move_snake() {
+	if (moving == None) {
+		return;
+	}
 	prev_tail_pos = (point) {(*s.tail).x, (*s.tail).y };
 	snake_segment *current = s.tail;
 	while (current != NULL && current != s.head) {
@@ -87,15 +90,39 @@ point get_next_head_pos() {
 	return (point) {x, y};
 }
 
+bool is_part_of_snake(point p) {
+	snake_segment *current = s.head;
+	while (current != NULL) {
+		if ((*current).x == p.x && (*current).y == p.y) {
+			return true;
+		}
+		current = (*current).next;
+	}
+	return false;
+}
+
 bool crashing() {
-	//TODO
+	point new_pos = get_next_head_pos();
+	return (moving == Up && new_pos.y < 0) ||
+		(moving == Down && new_pos.y >= BOARD_HEIGHT) ||
+		(moving == Right && new_pos.x >= BOARD_WIDTH) ||
+		(moving == Left && new_pos.x < 0) ||
+		is_part_of_snake(new_pos) || moving == None;
 }
 
 void move_apple() {
-	// TODO
+	point new_point;
+	do {
+		new_point = (point) {rand() % BOARD_WIDTH, rand() % BOARD_HEIGHT};
+	} while (is_part_of_snake(new_point));
+	apple = new_point;
 }
 
 void step() {
+
+	if (moving == None) {
+		return;
+	}
 
 	if (up_pressed() && moving != Down) {
 		moving = Up;
@@ -113,10 +140,11 @@ void step() {
 	if (eating_apple()) {
 		add_segment();
 		move_apple();
+		speed += .07f;
 	}
 
 	if (crashing()) {
-		// TODO
+		moving = None;
 	}
 
 	move_snake();
@@ -202,7 +230,7 @@ void reset_snake() {
 }
 
 void reset() {
-	rectangle clear = {PADDING, BOARD_WIDTH * SQUARE_SIZE, PADDING, BOARD_HEIGHT * SQUARE_SIZE};
+	rectangle clear = {PADDING, PADDING + BOARD_WIDTH * SQUARE_SIZE, PADDING, PADDING + BOARD_HEIGHT * SQUARE_SIZE};
 	fill_rectangle(clear, BACK_COLOUR);
 	reset_snake();
 	apple = (point) {max(BOARD_WIDTH - 5, (*s.head).x + 1), BOARD_HEIGHT / 2};
