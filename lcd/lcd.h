@@ -3,9 +3,12 @@
  *           View this license at http://creativecommons.org/about/licenses/
  */
  
+ 
 #include <avr/io.h>
 #include <stdint.h>
 
+#ifndef LCD_H
+#define LCD_H
 
 #define LCDWIDTH	240
 #define LCDHEIGHT	320
@@ -47,3 +50,5 @@ void display_char(char c);
 void display_string(char *str);
 void display_string_xy(char *str, uint16_t x, uint16_t y);
 void display_register(uint8_t reg);
+
+#endif /* LCD_H */
