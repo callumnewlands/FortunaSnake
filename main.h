@@ -6,6 +6,11 @@
 #include "colours.h"
 #include "io.h"
 
+#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
+#define max(X, Y)  ((X) > (Y) ? (X) : (Y))
+
+typedef struct { int x,y; } pair;
+
 typedef struct snake_segment {
     int x, y;
     struct snake_segment *prev;
@@ -18,8 +23,3 @@ typedef struct {
 } snake;
 
 typedef enum {Up, Down, Left, Right} direction;
-
-
-void reset_board();
-void redraw();
-void add_segment();

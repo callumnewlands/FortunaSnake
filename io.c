@@ -45,7 +45,6 @@ void init_outputs() {
 
  ISR( TIMER0_COMPA_vect ) {
     scan_switches();
-    PINB |= _BV(PINB7);   /* toggle LED */
  }
 
 

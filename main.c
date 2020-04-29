@@ -1,15 +1,22 @@
 #include "main.h"
 
-#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
-
 #define PADDING 20
 #define BOARD_WIDTH 20
 #define BOARD_HEIGHT 15
 #define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  2 * PADDING) / BOARD_WIDTH) )
-
-// move segment to position of prev?
+#define BASE_SPEED 300 /* Starting time between movements in ms */
+#define BACK_COLOUR DARK_GREY
 
 snake s;
+pair apple;
+pair prev_tail_pos;
+direction moving;
+float speed = 1.0f;
+
+void reset();
+void redraw();
+void add_segment();
+void step();
 
 void main(void)
 {
@@ -27,12 +34,59 @@ void main(void)
 	while(!centre_pressed());
 
 	clear_screen();
-	reset_board();
+	reset();
 	redraw();
 
 	for (;;)
 	{
+   		PINB |= _BV(PINB7);   /* toggle LED */
+		step();
+		redraw();
+		_delay_ms(speed * BASE_SPEED);
 	}
+}
+
+/* Start from tail, and don't use this for the head*/
+void move_segment(snake_segment *ss) {
+	
+	snake_segment *prev = (*ss).prev;
+	(*ss).x = (*prev).x;
+	(*ss).y = (*prev).y;
+}
+
+void move_snake() {
+	prev_tail_pos = (pair) {(*s.tail).x, (*s.tail).y };
+	snake_segment *current = s.tail;
+	while (current != NULL && current != s.head) {
+		move_segment(current);
+		current = (*current).prev;
+	}
+	switch (moving) {
+		case Up: (*s.head).y--; break;	
+		case Down: (*s.head).y++; break;
+		case Left: (*s.head).x--; break;
+		case Right: (*s.head).x++; break;
+		default: break; 
+	}
+}
+
+void step() {
+
+	if (up_pressed() && moving != Down) {
+		moving = Up;
+	} 
+	if (down_pressed() && moving != Up) {
+		moving = Down;
+	} 
+	if (left_pressed() && moving != Right) {
+		moving = Left;
+	} 
+	if (right_pressed()&& moving != Left) {
+		moving = Right;
+	}
+
+
+	move_snake();
 }
 
 void add_segment() {
@@ -44,23 +98,39 @@ void add_segment() {
 	(*s.tail).next = ss;
 }
 
-void draw_segment(snake_segment *ss, bool is_head) {
-	const int left = PADDING + (*ss).x * SQUARE_SIZE;
-	const int top = PADDING + (*ss).y * SQUARE_SIZE;
+void draw_cell(int x, int y, int16_t col) {
+	const int left = PADDING + x * SQUARE_SIZE;
+	const int top = PADDING + y * SQUARE_SIZE;
 	rectangle segment = {
 		left, left + SQUARE_SIZE, 
 		top,  top + SQUARE_SIZE};
-	fill_rectangle(segment, is_head ? DARK_GREEN : GREEN);
+	fill_rectangle(segment, col);
+}
+
+void draw_segment(snake_segment *ss, int16_t col) {
+	draw_cell((*ss).x, (*ss).y, col);
+}
+
+void draw_snake() {
+
+	draw_cell(prev_tail_pos.x, prev_tail_pos.y, BACK_COLOUR);
+
+	snake_segment *next = s.head;
+	draw_segment(next, DARK_GREEN);
+	next = (*next).next;
+	while (next != NULL) {
+		draw_segment(next, GREEN);
+		next = (*next).next;
+	}
+}
+
+void draw_apple() {
+	draw_cell(apple.x, apple.y, RED);
 }
 
 void redraw() {
-	snake_segment *next = s.head;
-	draw_segment(next, true);
-	next = (*next).next;
-	while (next != NULL) {
-		draw_segment(next, false);
-		next = (*next).next;
-	}
+	draw_apple();
+	draw_snake();
 }
 
 void free_all_segments() {
@@ -97,8 +167,10 @@ void reset_snake() {
 	s = (snake) {.head=s0, .tail=s2};
 }
 
-void reset_board() {
+void reset() {
 	rectangle clear = {PADDING, BOARD_WIDTH * SQUARE_SIZE, PADDING, BOARD_HEIGHT * SQUARE_SIZE};
-	fill_rectangle(clear, DARK_GRAY);
+	fill_rectangle(clear, BACK_COLOUR);
 	reset_snake();
+	apple = (pair) {max(BOARD_WIDTH - 5, (*s.head).x + 1), BOARD_HEIGHT / 2};
+	moving = Right;
 }
