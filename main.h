@@ -9,7 +9,7 @@
 #define min(X, Y)  ((X) < (Y) ? (X) : (Y))
 #define max(X, Y)  ((X) > (Y) ? (X) : (Y))
 
-typedef struct { int x,y; } pair;
+typedef struct { int x,y; } point;
 
 typedef struct snake_segment {
     int x, y;

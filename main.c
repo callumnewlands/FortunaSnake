@@ -1,15 +1,15 @@
 #include "main.h"
 
 #define PADDING 20
-#define BOARD_WIDTH 20
+#define BOARD_WIDTH 22
 #define BOARD_HEIGHT 15
 #define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  2 * PADDING) / BOARD_WIDTH) )
 #define BASE_SPEED 300 /* Starting time between movements in ms */
 #define BACK_COLOUR DARK_GREY
 
 snake s;
-pair apple;
-pair prev_tail_pos;
+point apple;
+point prev_tail_pos;
 direction moving;
 float speed = 1.0f;
 
@@ -55,7 +55,7 @@ void move_segment(snake_segment *ss) {
 }
 
 void move_snake() {
-	prev_tail_pos = (pair) {(*s.tail).x, (*s.tail).y };
+	prev_tail_pos = (point) {(*s.tail).x, (*s.tail).y };
 	snake_segment *current = s.tail;
 	while (current != NULL && current != s.head) {
 		move_segment(current);
@@ -68,6 +68,31 @@ void move_snake() {
 		case Right: (*s.head).x++; break;
 		default: break; 
 	}
+}
+
+bool eating_apple() {
+	return (*s.head).x == apple.x && (*s.head).y == apple.y;
+}
+
+point get_next_head_pos() {
+	int x = (*s.head).x;
+	int y = (*s.head).y;
+	switch (moving) {
+		case Up: y = (*s.head).y - 1; break;	
+		case Down: y = (*s.head).y + 1; break;
+		case Left: x = (*s.head).x - 1; break;
+		case Right: x = (*s.head).x + 1; break;
+		default: break; 
+	}
+	return (point) {x, y};
+}
+
+bool crashing() {
+	//TODO
+}
+
+void move_apple() {
+	// TODO
 }
 
 void step() {
@@ -85,6 +110,14 @@ void step() {
 		moving = Right;
 	}
 
+	if (eating_apple()) {
+		add_segment();
+		move_apple();
+	}
+
+	if (crashing()) {
+		// TODO
+	}
 
 	move_snake();
 }
@@ -96,6 +129,7 @@ void add_segment() {
 	(*ss).prev = s.tail;
 	(*ss).next = NULL;
 	(*s.tail).next = ss;
+	s.tail = ss;
 }
 
 void draw_cell(int x, int y, int16_t col) {
@@ -171,6 +205,6 @@ void reset() {
 	rectangle clear = {PADDING, BOARD_WIDTH * SQUARE_SIZE, PADDING, BOARD_HEIGHT * SQUARE_SIZE};
 	fill_rectangle(clear, BACK_COLOUR);
 	reset_snake();
-	apple = (pair) {max(BOARD_WIDTH - 5, (*s.head).x + 1), BOARD_HEIGHT / 2};
+	apple = (point) {max(BOARD_WIDTH - 5, (*s.head).x + 1), BOARD_HEIGHT / 2};
 	moving = Right;
 }
