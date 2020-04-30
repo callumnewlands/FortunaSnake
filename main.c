@@ -2,9 +2,10 @@
 #include "io.h"
 
 #define PADDING 15
+#define TOP_PADDING PADDING * 2
 #define BOARD_WIDTH 21
 #define BOARD_HEIGHT 15
-#define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  2 * PADDING) / BOARD_WIDTH) )
+#define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  TOP_PADDING - PADDING) / BOARD_WIDTH) )
 #define BASE_SPEED 200 /* Starting time between movements in ms */
 #define BACK_COLOUR DARK_GREY
 
@@ -12,8 +13,9 @@ snake s;
 point apple;
 point prev_tail_pos;
 direction moving;
-float speed = 1.0f;
+float speed;
 direction_queue key_buffer;
+int length;
 
 // TODO Death Screen, Score Counter, Highscore storage
 
@@ -143,6 +145,7 @@ void add_segment() {
 	(*ss).next = NULL;
 	(*s.tail).next = ss;
 	s.tail = ss;
+	length++;
 }
 
 void step() {
@@ -174,7 +177,7 @@ void step() {
 
 void draw_cell(int x, int y, int16_t col) {
 	const int left = PADDING + x * SQUARE_SIZE;
-	const int top = PADDING + y * SQUARE_SIZE;
+	const int top = TOP_PADDING + y * SQUARE_SIZE;
 	rectangle segment = {
 		left, left + SQUARE_SIZE, 
 		top,  top + SQUARE_SIZE};
@@ -202,9 +205,17 @@ void draw_apple() {
 	draw_cell(apple.x, apple.y, RED);
 }
 
+void draw_ui() {
+	fill_rectangle((rectangle){0, LCDWIDTH, 0, TOP_PADDING - 1}, BLACK);
+	char text[42];
+	sprintf(text, "length = %d               highscore = ?", length);
+	display_string_xy(text, PADDING * 2, TOP_PADDING / 2 - 1);
+}
+
 void redraw() {
 	draw_apple();
 	draw_snake();
+	draw_ui();
 }
 
 void free_all_segments() {
@@ -239,15 +250,16 @@ void reset_snake() {
 	(*s2).next = NULL;
 
 	s = (snake) {.head=s0, .tail=s2};
+	length = 3;
 }
 
 void reset() {
-	rectangle clear = {PADDING, PADDING + BOARD_WIDTH * SQUARE_SIZE, PADDING, PADDING + BOARD_HEIGHT * SQUARE_SIZE};
+	rectangle clear = {PADDING, PADDING + BOARD_WIDTH * SQUARE_SIZE, TOP_PADDING, TOP_PADDING + BOARD_HEIGHT * SQUARE_SIZE};
 	fill_rectangle(clear, BACK_COLOUR);
 	reset_snake();
 	apple = (point) {max(BOARD_WIDTH - 5, (*s.head).x + 1), BOARD_HEIGHT / 2};
 	moving = Right;
-
+    speed = 1.0f;
 	key_buffer = (direction_queue)direction_queue_init;
 	int i;
 	for (i = 0; i < KEY_BUFFER_SIZE; i++) {

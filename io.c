@@ -24,8 +24,7 @@ void init_inputs(){
     DDRC &= ~COMPASS_SWITCHES; // set as inputs
     PORTC |= COMPASS_SWITCHES; // enable pull-ups
 
-
-     /* Timer 0 for switch scan interrupt: */
+    /* Timer 0 for switch scan interrupt: */
 
     TCCR0A = _BV(WGM01);  /* CTC Mode, DS Table 14-7 */
     TCCR0B = _BV(CS01)
