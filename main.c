@@ -15,12 +15,16 @@ direction moving;
 float speed = 1.0f;
 direction_queue key_buffer;
 
+// TODO Death Screen, Score Counter, Highscore storage
+
 // char* direction_strings[] = {"Up", "Down", "Left", "Right", "None"}; 
 
+void display_menu();
 void reset();
-void redraw();
-void add_segment();
 void step();
+void redraw();
+void add_key_to_buffer(direction k);
+direction get_key_from_buffer();
 
 void main(void)
 {
@@ -34,7 +38,7 @@ void main(void)
 	sei();
 
 	clear_screen();
-	display_string_xy("Press Center to Start", 80, 100);
+	display_menu();
 	while(!centre_pressed());
 
 	clear_screen();
@@ -47,6 +51,16 @@ void main(void)
 		redraw();
 		_delay_ms(BASE_SPEED / speed);
 	}
+}
+
+void display_menu() {
+	display_string("\n\n\n   _____             _        ");
+	display_string("\n  / ____|           | |       ");
+	display_string("\n | (___  _ __   __ _| | _____ ");
+	display_string("\n  \\___ \\| '_ \\ / _` | |/ / _ \\");
+	display_string("\n  ____) | | | | (_| |   <  __/");
+	display_string("\n |_____/|_| |_|\\__,_|_|\\_\\___|\n\n");
+	display_string("\n Press Centre To Start...");
 }
 
 /* Start from tail, and don't use this for the head*/
@@ -121,6 +135,16 @@ void move_apple() {
 	apple = new_point;
 }
 
+void add_segment() {
+	snake_segment *ss = (snake_segment *) malloc(sizeof(snake_segment));
+	(*ss).x = (*s.tail).x;
+	(*ss).y = (*s.tail).y;
+	(*ss).prev = s.tail;
+	(*ss).next = NULL;
+	(*s.tail).next = ss;
+	s.tail = ss;
+}
+
 void step() {
 
 	if (moving == None) {
@@ -146,16 +170,6 @@ void step() {
 	}
 
 	move_snake();
-}
-
-void add_segment() {
-	snake_segment *ss = (snake_segment *) malloc(sizeof(snake_segment));
-	(*ss).x = (*s.tail).x;
-	(*ss).y = (*s.tail).y;
-	(*ss).prev = s.tail;
-	(*ss).next = NULL;
-	(*s.tail).next = ss;
-	s.tail = ss;
 }
 
 void draw_cell(int x, int y, int16_t col) {

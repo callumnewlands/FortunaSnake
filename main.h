@@ -38,7 +38,5 @@ typedef struct {
 #define direction_queue_init {.head=0, .tail=0};
 
 void key_press(direction);
-void add_key_to_buffer(direction k);
-direction get_key_from_buffer();
 
 #endif /* MAIN_H */
