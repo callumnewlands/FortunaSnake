@@ -20,6 +20,9 @@
 #include <avr/interrupt.h>
 #include "stdbool.h"
 
+#ifndef IO_H
+#define IO_H
+
 #define SWN     PC2
 #define SWE     PC3
 #define SWS     PC4
@@ -39,3 +42,5 @@ bool left_pressed();
 bool right_pressed();
 bool up_pressed();
 bool down_pressed();
+
+#endif /* IO_H */

@@ -1,4 +1,5 @@
 #include "main.h"
+#include "io.h"
 
 #define PADDING 15
 #define BOARD_WIDTH 21
@@ -12,6 +13,9 @@ point apple;
 point prev_tail_pos;
 direction moving;
 float speed = 1.0f;
+direction_queue key_buffer;
+
+// char* direction_strings[] = {"Up", "Down", "Left", "Right", "None"}; 
 
 void reset();
 void redraw();
@@ -39,7 +43,6 @@ void main(void)
 
 	for (;;)
 	{
-   		PINB |= _BV(PINB7);   /* toggle LED */
 		step();
 		redraw();
 		_delay_ms(BASE_SPEED / speed);
@@ -124,17 +127,12 @@ void step() {
 		return;
 	}
 
-	if (up_pressed() && moving != Down) {
-		moving = Up;
-	} 
-	if (down_pressed() && moving != Up) {
-		moving = Down;
-	} 
-	if (left_pressed() && moving != Right) {
-		moving = Left;
-	} 
-	if (right_pressed()&& moving != Left) {
-		moving = Right;
+	direction change = get_key_from_buffer();
+	if ((change == Up && moving != Down) || 
+		(change == Down && moving != Up) ||
+		(change == Left && moving != Right) ||
+		(change == Right && moving != Left)) {
+			moving = change;	
 	}
 
 	if (eating_apple()) {
@@ -235,4 +233,45 @@ void reset() {
 	reset_snake();
 	apple = (point) {max(BOARD_WIDTH - 5, (*s.head).x + 1), BOARD_HEIGHT / 2};
 	moving = Right;
+
+	key_buffer = (direction_queue)direction_queue_init;
+	int i;
+	for (i = 0; i < KEY_BUFFER_SIZE; i++) {
+		key_buffer.contents[i] = None;
+	}
+}
+
+void add_key_to_buffer(direction k) {
+
+	if (((key_buffer.tail + 1) % KEY_BUFFER_SIZE) == key_buffer.head) 
+		key_buffer.head++;
+
+	key_buffer.contents[key_buffer.tail++] = k;
+	key_buffer.tail %= KEY_BUFFER_SIZE;
+}
+
+direction get_key_from_buffer() {
+	if (key_buffer.head == key_buffer.tail) return None; // Empty Buffer
+
+	const int ptr = key_buffer.head++;
+	key_buffer.head %= KEY_BUFFER_SIZE;
+	const direction d = key_buffer.contents[ptr];
+	key_buffer.contents[ptr] = None;
+	return d;
+}
+
+void key_press(direction d) {
+
+	PINB |= _BV(PINB7);   /* toggle LED */
+
+	if (moving == None) return;
+
+	add_key_to_buffer(d);
+
+	// if ((d == Up && moving != Down) || 
+	// 	(d == Down && moving != Up) ||
+	// 	(d == Left && moving != Right) ||
+	// 	(d == Right && moving != Left)) {
+	// 		moving = d;	
+	// }
 }

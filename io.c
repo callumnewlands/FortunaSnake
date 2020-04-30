@@ -9,6 +9,7 @@
 */
 
 #include "io.h"
+#include "main.h"
 
 volatile uint8_t switch_state;   /* debounced and inverted key state: bit = 1: key pressed */
 volatile uint8_t switch_press;   /* key press detect */
@@ -30,7 +31,7 @@ void init_inputs(){
     TCCR0B = _BV(CS01)
            | _BV(CS00);   /* Prescaler: F_CPU / 64, DS Table 14-8 */
 
-    OCR0A = (uint8_t)(F_CPU / (64.0 * 100) - 1); // 100Hz
+    OCR0A = (uint8_t)(F_CPU / (64.0 * 1000) - 1); // 1000Hz = 1ms
 
     TIMSK0 |= _BV(OCIE0A);  /* Enable timer interrupt, DS 14.8.6  */
 }
@@ -45,6 +46,18 @@ void init_outputs() {
 
  ISR( TIMER0_COMPA_vect ) {
     scan_switches();
+    if (up_pressed()) {
+        key_press(Up);
+    }
+    if (down_pressed()) {
+        key_press(Down);
+    }
+    if (left_pressed()) {
+        key_press(Left);
+    }
+    if (right_pressed()) {
+        key_press(Right);
+    }
  }
 
 

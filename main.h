@@ -2,12 +2,17 @@
 
 #include <stdlib.h>
 #include <util/delay.h>
+#include <string.h>
 #include "lcd/lcd.h"
 #include "colours.h"
-#include "io.h"
+
+#ifndef MAIN_H
+#define MAIN_H
 
 #define min(X, Y)  ((X) < (Y) ? (X) : (Y))
 #define max(X, Y)  ((X) > (Y) ? (X) : (Y))
+
+#define KEY_BUFFER_SIZE 10
 
 typedef struct { int x,y; } point;
 
@@ -23,3 +28,17 @@ typedef struct {
 } snake;
 
 typedef enum {Up, Down, Left, Right, None} direction;
+
+typedef struct {
+    direction contents[KEY_BUFFER_SIZE];
+    int head; 
+    int tail; 
+} direction_queue;
+
+#define direction_queue_init {.head=0, .tail=0};
+
+void key_press(direction);
+void add_key_to_buffer(direction k);
+direction get_key_from_buffer();
+
+#endif /* MAIN_H */
