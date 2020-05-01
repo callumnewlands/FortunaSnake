@@ -6,6 +6,7 @@
         "stdlib.h": "c",
         "math.h": "c",
         "stdbool.h": "c",
-        "interrupt.h": "c"
+        "interrupt.h": "c",
+        "gamerender.h": "c"
     }
 }

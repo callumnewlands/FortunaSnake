@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <util/delay.h>
-#include <string.h>
 #include "lcd/lcd.h"
 #include "colours.h"
 
@@ -12,6 +11,14 @@
 #define min(X, Y)  ((X) < (Y) ? (X) : (Y))
 #define max(X, Y)  ((X) > (Y) ? (X) : (Y))
 
+#define PADDING 15 /* in pixels */
+#define TOP_PADDING PADDING * 2
+#define BOARD_WIDTH 21 /* in pixels */
+#define BOARD_HEIGHT 15 /* in pixels */
+#define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  TOP_PADDING - PADDING) / BOARD_WIDTH) )
+#define BASE_SPEED 200 /* Starting time between movements in ms */
+#define BACK_COLOUR DARK_GREY
+#define GAME_OVER_TIME 10000 /* Time after game over before the game resets to the title in ms */
 #define KEY_BUFFER_SIZE 10
 
 typedef struct { int x,y; } point;

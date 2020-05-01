@@ -6,6 +6,9 @@
       | 5 bit | 6 bit | 5 bit |
       |-------+-------+-------|
 */
+#ifndef COLOURS_H
+#define COLOURS_H
+
 #define ALICE_BLUE              0xEFBF
 #define ANTIQUE_WHITE           0xF75A
 #define AQUA                    0x07FF
@@ -160,6 +163,7 @@
 #define WHITE_SMOKE             0xF79E
 #define YELLOW                  0xFFE0
 
+#endif /* COLOURS_H */
 /*========================================================================\
 |  The MIT License (MIT)                                                  |
 |                                                                         |
