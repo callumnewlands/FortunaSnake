@@ -1,23 +1,25 @@
 #include "main.h"
 #include "io.h"
 
-#define PADDING 15
+#define PADDING 15 /* in pixels */
 #define TOP_PADDING PADDING * 2
-#define BOARD_WIDTH 21
-#define BOARD_HEIGHT 15
+#define BOARD_WIDTH 21 /* in pixels */
+#define BOARD_HEIGHT 15 /* in pixels */
 #define SQUARE_SIZE ( min((LCDWIDTH -  2 * PADDING) / BOARD_HEIGHT, (LCDHEIGHT -  TOP_PADDING - PADDING) / BOARD_WIDTH) )
 #define BASE_SPEED 200 /* Starting time between movements in ms */
 #define BACK_COLOUR DARK_GREY
+#define GAME_OVER_TIME 10000 /* Time after game over before the game resets to the title in ms */
 
 snake s;
 point apple;
+point exploding_pos;
 point prev_tail_pos;
 direction moving;
 float speed;
 direction_queue key_buffer;
 int length;
 
-// TODO Death Screen, Score Counter, Highscore storage
+// TODO Highscore storage
 
 // char* direction_strings[] = {"Up", "Down", "Left", "Right", "None"}; 
 
@@ -30,8 +32,8 @@ direction get_key_from_buffer();
 
 void main(void)
 {
- 	/* 8MHz clock, no prescaling (DS, p. 48) */
-    CLKPR = (1 << CLKPCE);
+ 	/* 8MHz clock, no prescaling */
+    CLKPR = _BV(CLKPCE);
     CLKPR = 0;
 
 	init_inputs();
@@ -39,38 +41,54 @@ void main(void)
 	
 	sei();
 
-	clear_screen();
-	display_menu();
-	while(!centre_pressed());
+	for (;;) {
+		display.background = BLACK;
+		clear_screen();
+		display_menu();
+		while(!centre_pressed());
 
-	clear_screen();
-	reset();
-	redraw();
-
-	for (;;)
-	{
-		step();
+		clear_screen();
+		reset();
 		redraw();
-		_delay_ms(BASE_SPEED / speed);
+
+		while (s.head != NULL) {
+			step();
+			redraw();
+			_delay_ms(BASE_SPEED / speed);
+		}
+
+		display.background = RED;
+		clear_screen();
+		display_string("\n\n\n\n\n\n\n\n  _____                         ____                 ");
+		display_string("\n / ____|                       / __ \\                ");
+		display_string("\n| |  __  __ _ _ __ ___   ___  | |  | |_   _____ _ __ ");
+		display_string("\n| | |_ |/ _` | '_ ` _ \\ / _ \\ | |  | \\ \\ / / _ \\ '__|");
+		display_string("\n| |__| | (_| | | | | | |  __/ | |__| |\\ V /  __/ |   ");
+		display_string("\n \\_____|\\__,_|_| |_| |_|\\___|  \\____/  \\_/ \\___|_|   ");
+		display_string("\n=====================================================");
+
+		char text[32];
+		sprintf(text, "\n\n                      length = %d", length);
+		display_string(text);
+		display_string("\n                    Press Centre to Restart");
+
+		int i;
+		const int delay = 10;
+		for (i = 0; i < GAME_OVER_TIME; i += delay) {
+			if (centre_pressed()) break;
+			_delay_ms(delay);
+		}
 	}
 }
 
 void display_menu() {
-	display_string("\n\n\n   _____             _        ");
-	display_string("\n  / ____|           | |       ");
-	display_string("\n | (___  _ __   __ _| | _____ ");
-	display_string("\n  \\___ \\| '_ \\ / _` | |/ / _ \\");
-	display_string("\n  ____) | | | | (_| |   <  __/");
-	display_string("\n |_____/|_| |_|\\__,_|_|\\_\\___|\n\n");
-	display_string("\n Press Centre To Start...");
-}
-
-/* Start from tail, and don't use this for the head*/
-void move_segment(snake_segment *ss) {
-	
-	snake_segment *prev = (*ss).prev;
-	(*ss).x = (*prev).x;
-	(*ss).y = (*prev).y;
+	display_string("\n\n\n\n\n\n\n\n             _____             _        ");
+	display_string("\n            / ____|           | |       ");
+	display_string("\n           | (___  _ __   __ _| | _____ ");
+	display_string("\n            \\___ \\| '_ \\ / _` | |/ / _ \\");
+	display_string("\n            ____) | | | | (_| |   <  __/");
+	display_string("\n           |_____/|_| |_|\\__,_|_|\\_\\___|\n\n");
+	display_string("\n           Press Centre To Start...");
 }
 
 void move_snake() {
@@ -80,7 +98,9 @@ void move_snake() {
 	prev_tail_pos = (point) {(*s.tail).x, (*s.tail).y };
 	snake_segment *current = s.tail;
 	while (current != NULL && current != s.head) {
-		move_segment(current);
+		snake_segment *prev = (*current).prev;
+		(*current).x = (*prev).x;
+		(*current).y = (*prev).y;
 		current = (*current).prev;
 	}
 	switch (moving) {
@@ -148,9 +168,28 @@ void add_segment() {
 	length++;
 }
 
+/* Does not decrement length */
+void remove_tail_segment() {
+	snake_segment *new_tail = (*s.tail).prev;
+	if (new_tail != NULL) {
+		(*new_tail).next = NULL;
+	} else {
+		s.head = NULL;
+	} 	
+	prev_tail_pos = exploding_pos;
+	exploding_pos.x = (*s.tail).x;
+	exploding_pos.y = (*s.tail).y;
+	free(s.tail);
+	s.tail = new_tail;
+}
+
+
 void step() {
 
 	if (moving == None) {
+		if (s.head != NULL && s.tail != NULL) {
+			remove_tail_segment();
+		} 
 		return;
 	}
 
@@ -176,6 +215,8 @@ void step() {
 }
 
 void draw_cell(int x, int y, int16_t col) {
+	if (x < 0 || y < 0) return;
+
 	const int left = PADDING + x * SQUARE_SIZE;
 	const int top = TOP_PADDING + y * SQUARE_SIZE;
 	rectangle segment = {
@@ -191,6 +232,9 @@ void draw_segment(snake_segment *ss, int16_t col) {
 void draw_snake() {
 
 	draw_cell(prev_tail_pos.x, prev_tail_pos.y, BACK_COLOUR);
+	draw_cell(exploding_pos.x, exploding_pos.y, YELLOW);
+
+	if (s.head == NULL) return;
 
 	snake_segment *next = s.head;
 	draw_segment(next, DARK_GREEN);
@@ -251,9 +295,12 @@ void reset_snake() {
 
 	s = (snake) {.head=s0, .tail=s2};
 	length = 3;
+	prev_tail_pos = (point) {-1,-1};
+	exploding_pos = (point) {-1,-1};
 }
 
 void reset() {
+	display.background = BLACK;
 	rectangle clear = {PADDING, PADDING + BOARD_WIDTH * SQUARE_SIZE, TOP_PADDING, TOP_PADDING + BOARD_HEIGHT * SQUARE_SIZE};
 	fill_rectangle(clear, BACK_COLOUR);
 	reset_snake();
@@ -287,17 +334,7 @@ direction get_key_from_buffer() {
 }
 
 void key_press(direction d) {
-
-	PINB |= _BV(PINB7);   /* toggle LED */
-
 	if (moving == None) return;
 
 	add_key_to_buffer(d);
-
-	// if ((d == Up && moving != Down) || 
-	// 	(d == Down && moving != Up) ||
-	// 	(d == Left && moving != Right) ||
-	// 	(d == Right && moving != Left)) {
-	// 		moving = d;	
-	// }
 }
