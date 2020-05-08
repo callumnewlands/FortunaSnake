@@ -4,6 +4,7 @@
 #include <util/delay.h>
 #include "lcd/lcd.h"
 #include "colours.h"
+#include "ff.h"
 
 #ifndef MAIN_H
 #define MAIN_H
@@ -20,6 +21,7 @@
 #define BACK_COLOUR DARK_GREY
 #define GAME_OVER_TIME 10000 /* Time after game over before the game resets to the title in ms */
 #define KEY_BUFFER_SIZE 10
+#define NO_OF_HIGHSCORES 10
 
 typedef struct { int x,y; } point;
 
@@ -43,6 +45,13 @@ typedef struct {
 } direction_queue;
 
 #define direction_queue_init {.head=0, .tail=0};
+
+typedef struct {
+    char name[3];
+    int score;
+} highscore;
+
+#define highscore_init { .name="___", .score=0 };
 
 void key_press(direction);
 

@@ -6,5 +6,5 @@
 #include <stdio.h>
 
 void display_menu();
-void display_game_over(int);
-void redraw(snake, int, point, point, point);
+void display_game_over(int, highscore*);
+void redraw(snake, int, int, point, point, point);

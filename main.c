@@ -2,6 +2,8 @@
 #include "io.h"
 #include "gameRender.h"
 
+FATFS FatFs;
+FIL File;
 snake s;
 point apple;
 point exploding_pos;
@@ -10,15 +12,14 @@ direction moving;
 float speed;
 direction_queue key_buffer;
 int length;
-
-// TODO Highscore storage
-
-// char* direction_strings[] = {"Up", "Down", "Left", "Right", "None"}; 
+highscore highscores[NO_OF_HIGHSCORES];
 
 void display_menu();
 void reset();
 void step();
 void redraw();
+void save_score();
+void read_highscores();
 void add_key_to_buffer(direction k);
 direction get_key_from_buffer();
 
@@ -41,21 +42,96 @@ void main(void)
 
 		clear_screen();
 		reset();
-		redraw(s, length, apple, prev_tail_pos, exploding_pos);
+		redraw(s, length, highscores[0].score, apple, prev_tail_pos, exploding_pos);
 
 		while (s.head != NULL) {
 			step();
-			redraw(s, length, apple, prev_tail_pos, exploding_pos);
+			redraw(s, length, highscores[0].score, apple, prev_tail_pos, exploding_pos);
 			_delay_ms(BASE_SPEED / speed);
 		}
 
-		display_game_over(length);
+		save_score();
+
+		display_game_over(length, highscores);
 		int i;
 		const int delay = 10;
 		for (i = 0; i < GAME_OVER_TIME; i += delay) {
 			if (centre_pressed()) break;
 			_delay_ms(delay);
 		}
+	}
+}
+
+highscore parse_line_to_hsc(char *line, int length) {
+	highscore hs = (highscore) highscore_init;
+	
+	strncpy(hs.name, line, 3);
+	const int n = length - 3;
+	char tmp[n];
+	
+	strncpy(tmp, &line[3], n - 1);
+	hs.score=atoi(tmp);
+	
+	return hs;
+}
+
+int f_lines(FIL *fp) {
+	int i = 0;
+	const int line_length = 32;
+	char line[line_length];
+	while(f_gets(line, sizeof line, fp)) {
+		i++;
+	}
+	f_lseek(fp, 0);
+	return i;
+}
+
+void read_highscores() {
+	f_mount(&FatFs, "", 0);
+	if (f_open(&File, "snake.txt", FA_READ | FA_OPEN_EXISTING) != FR_OK) {
+		display_string("Error: Can't read file! \n");
+		return;
+	}
+	const int line_length = 10;
+	char line[line_length];
+	const int scores_on_file = f_lines(&File);
+	highscore hss[scores_on_file];
+	int i = 0;
+	while(f_gets(line, sizeof line, &File)) {
+		hss[i] = parse_line_to_hsc(line, line_length);
+		i++;
+	}
+	f_close(&File);
+	
+	int n;
+	for (n = 0; n < NO_OF_HIGHSCORES; n++) {
+		highscores[n] = (highscore) highscore_init;
+	}
+	for (n = 0; n < min(scores_on_file, NO_OF_HIGHSCORES); n++) {
+		int tmp_index = 0;
+		int i;
+		for (i = 0; i < scores_on_file; i++) {
+			if (hss[i].score >= hss[tmp_index].score) {
+				tmp_index = i;
+			}
+		}
+		highscores[n] = (highscore) {.score=hss[tmp_index].score};
+		strcpy(highscores[n].name, hss[tmp_index].name); 
+		hss[tmp_index].score = -1;
+		
+
+	}
+	
+}
+
+void save_score() {
+	f_mount(&FatFs, "", 0);
+	if (f_open(&File, "snake.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
+			f_lseek(&File, f_size(&File));
+			f_printf(&File, "AAA %d\n", length);
+			f_close(&File);
+	} else {
+			display_string("Error: Can't write file! \n");
 	}
 }
 
@@ -233,6 +309,8 @@ void reset() {
 	for (i = 0; i < KEY_BUFFER_SIZE; i++) {
 		key_buffer.contents[i] = None;
 	}
+	read_highscores();
+	
 }
 
 void add_key_to_buffer(direction k) {

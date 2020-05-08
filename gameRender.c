@@ -10,10 +10,20 @@ void display_menu() {
 	display_string("\n             Press Centre To Start...");
 }
 
-void display_game_over(int length) {
-	display.background = RED;
+void display_highscores(highscore *highscores) {
+	int i;
+	display_string("\n\n                   Highscores:");
+	for (i = 0; i < NO_OF_HIGHSCORES; i++) {
+		char tmp[32];
+		sprintf(tmp, "\n                      %s %d", highscores[i].name, highscores[i].score);
+		display_string(tmp);
+	}
+}
+
+void display_game_over(int length, highscore *highscores) {
+	display.background = BLACK;
 	clear_screen();
-	display_string("\n\n\n\n\n\n\n\n  _____                         ____                 ");
+	display_string("\n  _____                         ____                 ");
 	display_string("\n / ____|                       / __ \\                ");
 	display_string("\n| |  __  __ _ _ __ ___   ___  | |  | |_   _____ _ __ ");
 	display_string("\n| | |_ |/ _` | '_ ` _ \\ / _ \\ | |  | \\ \\ / / _ \\ '__|");
@@ -24,8 +34,10 @@ void display_game_over(int length) {
 	char text[32];
 	sprintf(text, "\n\n                      Length = %d", length);
 	display_string(text);
+	display_highscores(highscores);
 	display_string("\n\n\n               Press Centre to Restart...");
 }
+
 
 
 void draw_cell(int x, int y, int16_t col) {
@@ -63,15 +75,15 @@ void draw_apple(point apple) {
 	draw_cell(apple.x, apple.y, RED);
 }
 
-void draw_ui(int length) {
+void draw_ui(int length, int highscore) {
 	fill_rectangle((rectangle){0, LCDWIDTH, 0, TOP_PADDING - 1}, BLACK);
 	char text[42];
-	sprintf(text, "length = %d               highscore = ?", length);
+	sprintf(text, "length = %d               highscore = %d", length, highscore);
 	display_string_xy(text, PADDING * 2, TOP_PADDING / 2 - 1);
 }
 
-void redraw(snake s, int length, point apple, point prev_tail_pos, point exploding_pos) {
+void redraw(snake s, int length, int highscore, point apple, point prev_tail_pos, point exploding_pos) {
 	draw_apple(apple);
 	draw_snake(s, prev_tail_pos, exploding_pos);
-	draw_ui(length);
+	draw_ui(length, highscore);
 }
