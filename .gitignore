@@ -52,3 +52,5 @@ Mkfile.old
 dkms.conf
 
 _build/
+*.zip
+fb.txt

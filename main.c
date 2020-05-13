@@ -50,7 +50,9 @@ void main(void)
 			_delay_ms(BASE_SPEED / speed);
 		}
 
-		save_score();
+		if (length > highscores[NO_OF_HIGHSCORES - 1].score) {
+			save_score();
+		}
 
 		display_game_over(length, highscores);
 		int i;
