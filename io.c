@@ -1,10 +1,12 @@
-/* Adapted by Callum Newlands from ruota.c which has the following copyright notice:
-
-    Copyright Peter Dannegger (danni@specs.de)
-    http://www.mikrocontroller.net/articles/Entprellung 
-    http://www.mikrocontroller.net/articles/Drehgeber
-
-    Slightly adapted by Klaus-Peter Zauner for FortunaOS, March 2015
+/* Author: Callum Newlands
+ * Licence: This work is licenced under GNU GPLv3.0 - see the attached LICENCE.txt notice
+ * Adapted from ruota.c which has the following copyright notice:
+ *    |
+ *    |  Copyright Peter Dannegger (danni@specs.de)
+ *    |  http://www.mikrocontroller.net/articles/Entprellung 
+ *    |  http://www.mikrocontroller.net/articles/Drehgeber
+ *    |
+ *    |  Slightly adapted by Klaus-Peter Zauner for FortunaOS, March 2015
 
 */
 

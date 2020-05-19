@@ -1,4 +1,6 @@
-/* COMP2215 Task 7 */
+/* Author: Callum Newlands
+ * Licence: This work is licenced under GNU GPLv3.0 - see the attached LICENCE.txt notice
+ */
 
 #include <stdlib.h>
 #include <util/delay.h>

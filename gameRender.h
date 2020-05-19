@@ -1,3 +1,7 @@
+/* Author: Callum Newlands
+ * Licence: This work is licenced under GNU GPLv3.0 - see the attached LICENCE.txt notice
+ */
+
 #include <stdlib.h>
 #include "lcd/lcd.h"
 #include "main.h"
