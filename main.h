@@ -47,7 +47,7 @@ typedef struct {
 #define direction_queue_init {.head=0, .tail=0};
 
 typedef struct {
-    char name[3];
+    char name[4];
     int score;
 } highscore;
 

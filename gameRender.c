@@ -14,7 +14,7 @@ void display_highscores(highscore *highscores) {
 	int i;
 	display_string("\n\n                   Highscores:");
 	for (i = 0; i < NO_OF_HIGHSCORES; i++) {
-		char tmp[32];
+		char tmp[48];
 		sprintf(tmp, "\n                      %s %d", highscores[i].name, highscores[i].score);
 		display_string(tmp);
 	}

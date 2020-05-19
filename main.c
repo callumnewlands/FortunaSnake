@@ -13,13 +13,16 @@ float speed;
 direction_queue key_buffer;
 int length;
 highscore highscores[NO_OF_HIGHSCORES];
+char name[4] = "AAA";
 
 void display_menu();
 void reset();
 void step();
 void redraw();
+void get_name();
 void save_score();
 void read_highscores();
+void add_score_to_highscores();
 void add_key_to_buffer(direction k);
 direction get_key_from_buffer();
 
@@ -51,7 +54,9 @@ void main(void)
 		}
 
 		if (length > highscores[NO_OF_HIGHSCORES - 1].score) {
+			get_name();
 			save_score();
+			add_score_to_highscores();
 		}
 
 		display_game_over(length, highscores);
@@ -89,6 +94,12 @@ int f_lines(FIL *fp) {
 }
 
 void read_highscores() {
+	
+	int n;
+	for (n = 0; n < NO_OF_HIGHSCORES; n++) {
+		highscores[n] = (highscore) highscore_init;
+	}
+
 	f_mount(&FatFs, "", 0);
 	if (f_open(&File, "snake.txt", FA_READ | FA_OPEN_EXISTING) != FR_OK) {
 		display_string("Error: Can't read file! \n");
@@ -105,10 +116,6 @@ void read_highscores() {
 	}
 	f_close(&File);
 	
-	int n;
-	for (n = 0; n < NO_OF_HIGHSCORES; n++) {
-		highscores[n] = (highscore) highscore_init;
-	}
 	for (n = 0; n < min(scores_on_file, NO_OF_HIGHSCORES); n++) {
 		int tmp_index = 0;
 		int i;
@@ -126,15 +133,66 @@ void read_highscores() {
 	
 }
 
+void get_name() {
+
+	clear_screen();
+	display_string("\n\n\n\n\n\n                  Enter your name:");
+	char tmp[4];
+	strcpy(tmp, name);
+	int current = 0;
+	while (current <= 2) {
+		char text[16];
+		fill_rectangle((rectangle){55, LCDWIDTH - 60, 75, 135}, BLACK);
+		sprintf(text, "%s %s %s", current == 0 ? "/\\" : "  ", current == 1 ? "/\\" : "  ", current == 2 ? "/\\" : "  ");
+		display_string_xy(text, 102, 80);
+		sprintf(text, " %c  %c  %c", tmp[0], tmp[1], tmp[2]);
+		display_string_xy(text, 100, 100);
+		sprintf(text, "%s %s %s", current == 0 ? "\\/" : "  ", current == 1 ? "\\/" : "  ", current == 2 ? "\\/" : "  ");
+		display_string_xy(text, 102, 120);
+	
+		direction press = get_key_from_buffer();
+		if (press == Right || centre_pressed()) {
+			current++;
+			continue;
+		} else if (press == Left && current > 0) {
+			current--;
+			continue;
+		} else if (press == Up) {
+			tmp[current] = (tmp[current] - 64) % 26 + 65;
+		} else if (press == Down) {
+			tmp[current] = (tmp[current] - 40) % 26 + 65;
+		}
+
+		_delay_ms(50);
+
+	}
+	strcpy(name, tmp);
+}
+
 void save_score() {
 	f_mount(&FatFs, "", 0);
 	if (f_open(&File, "snake.txt", FA_WRITE | FA_OPEN_ALWAYS) == FR_OK) {
 			f_lseek(&File, f_size(&File));
-			f_printf(&File, "AAA %d\n", length);
+			f_printf(&File, "%s %d\n", name, length);
 			f_close(&File);
 	} else {
 			display_string("Error: Can't write file! \n");
 	}
+}
+
+void add_score_to_highscores() {
+	int n;
+	for (n = 0; n < NO_OF_HIGHSCORES; n++) {
+		if (highscores[n].score < length) {
+			break;
+		}
+	}
+	int i;
+	for (i = (NO_OF_HIGHSCORES - 1); i > n; i--) {
+		highscores[i] = highscores[i-1];
+	}
+	strcpy(highscores[n].name, name);
+	highscores[n].score = length;	
 }
 
 void move_snake() {
@@ -335,7 +393,7 @@ direction get_key_from_buffer() {
 }
 
 void key_press(direction d) {
-	if (moving == None) return;
+	//if (moving == None) return;
 
 	add_key_to_buffer(d);
 }
