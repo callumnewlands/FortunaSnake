@@ -1,5 +1,5 @@
 /* Author: Callum Newlands
- * Licence: This work is licenced under GNU GPLv3.0 - see the attached LICENCE.txt notice
+ * License: This work is licenced under GNU GPLv3.0 - see the attached LICENSE.txt notice
  * Adapted from ruota.c which has the following copyright notice:
  *    |
  *    |  Copyright Peter Dannegger (danni@specs.de)

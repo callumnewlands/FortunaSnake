@@ -1,5 +1,5 @@
 /* Author: Callum Newlands
- * Licence: This work is licenced under GNU GPLv3.0 - see the attached LICENCE.txt notice
+ * License: This work is licenced under GNU GPLv3.0 - see the attached LICENSE.txt notice
  *
    |      |     | Signal on |                       |
    | Port | Pin | Schematic | Function              |
