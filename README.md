@@ -1,5 +1,7 @@
 # FortunaSnake
-The original Snake game for the LaFortuna Board
+The original Snake game for the LaFortuna Board -- A bespoke AVR board based on the AT90USB1286 Microcontroller -- created for the [COMP2215 Computer Systems II](https://www.southampton.ac.uk/courses/modules/comp2215) module at the University of Southampton
+
+![Screenshots](https://github.com/callumnewlands/FortunaSnake/blob/master/screenshots/fortuna-screenshots.png)
 
 ## Licence
 GNU GPLv3.0 - see LICENSE.txt file
